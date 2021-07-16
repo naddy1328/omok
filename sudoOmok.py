@@ -35,8 +35,7 @@ def choosePlay():
                 print("0~14까지의 숫자만 입력할 수 있음")
                 continue
             
-def isInvalidInput():
-    
+def isInvalidInput():    
     # 입력한 착수 지점의 형식이 올바른지 확인
         # DEBUG 예외
         # 입력값이 2개가 아님
@@ -46,6 +45,8 @@ def isInvalidInput():
 def isBannedLocation():
     # 입력한 착수 지점이 금수에 해당하는지 확인
         # 입력 값이 쌍삼임
+        # 입력 값이 뜬삼임
+        # 입력 값이 뜬뜬삼임
     pass
 
 if __name__ == '__main__':
