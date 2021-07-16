@@ -35,7 +35,8 @@ def choosePlay():
                 print("0~14까지의 숫자만 입력할 수 있음")
                 continue
             
-def isValidInput():
+def isInValidInput():
+    
     # 입력한 착수 지점의 형식이 올바른지 확인
         # DEBUG 예외
         # 입력값이 2개가 아님
