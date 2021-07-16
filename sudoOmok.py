@@ -1,5 +1,6 @@
 from pprint import pprint
 from copy import deepcopy
+from collections import namedtuple
 import os
 
 BLACK = '●'
@@ -42,14 +43,33 @@ def isValidInput(pos: str) -> bool:
         return False
     
     # 빈 곳에 착수해야함
-    rule_only_empty = lambda x: board[int(x[1])][int(x[0])] == '+'
-    if rule_only_empty(pos): # TODO QA
+    rule_only_empty = lambda x: board[int(x[1])][int(x[0])] != '+'
+    if rule_only_empty(pos):
         print("해당 위치에는 이미 돌이 존재합니다")
         return False
 
     return True
 
-def isBannedLocation():
+def isBannedLocation(_pos: list) -> bool:
+    Pos = namedtuple('Pos', 'x y')
+    pos = Pos(_pos[0], _pos[1])
+    HORI = Pos(0, 1)
+    VERT = Pos(1, 0)
+    DIAG = Pos(1, 1)
+    R_DIAG = Pos(1, -1)
+
+    pos_lists = [[[pos.y + i * direction.y, pos.x + i * direction.x, direction] for i in range(-2, 3)] for direction in [HORI, VERT, DIAG, R_DIAG]]
+    pprint(pos_lists)
+
+    def checkHori():
+        pass
+    def checkVert():
+        pass
+    def checkDiag():
+        pass
+    def checkReverseDiag():
+        pass
+        
     # 입력한 착수 지점이 금수에 해당하는지 확인
         # hori, vert, diag, rDiag
         # 입력 값이 쌍삼임
@@ -63,6 +83,7 @@ def isWin():
 
 if __name__ == '__main__':
     os.system('cls')
+    isBannedLocation([0, 0])
     while True:
         showBoard()
         choosePlay()
