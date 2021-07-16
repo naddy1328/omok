@@ -17,33 +17,41 @@ def playStone(x: int, y: int):
     board[y][x] = BLACK if turn == 1 else WHITE
     turn *= -1
 
-def choosePlay():
+def choosePlay() -> list:
     while True:
         print("착수지점: ", end='')
-        rule_input_two = lambda x: len(x) != 2
-        RANGE = [str(i) for i in range(15)]
-        rule_range_out = lambda x: (x[0] not in RANGE) or (x[1] not in RANGE)
-        try:
-            pos = input().split()
-            if rule_input_two(pos):
-                print("숫자 2개 입력하셈")
-                continue
-            pos = list(map(int, pos.split()))
-            return pos
-        except:
-            if rule_range_out(pos):
-                print("0~14까지의 숫자만 입력할 수 있음")
-                continue
+        pos = input().split()
+        if isValidInput(pos):
+            return list(map(int, pos))
             
-def isInvalidInput():    
+def isValidInput(pos: str) -> bool:    
     # 입력한 착수 지점의 형식이 올바른지 확인
-        # DEBUG 예외
-        # 입력값이 2개가 아님
-        # 입력값이 범위를 벗아남
-    pass
+    # TODO DEBUG 예외
+
+    # 입력값이 2개가 아닌 경우를 확인
+    rule_input_two = lambda x: len(x) != 2
+    if rule_input_two(pos):
+        print("2개의 숫자를 입력해야 합니다(0~14)")
+        return False
+    
+    # 입력값이 범위를 벗아남
+    RANGE = [str(i) for i in range(15)]
+    rule_range_out = lambda x: (x[0] not in RANGE) or (x[1] not in RANGE)
+    if rule_range_out(pos):
+        print("0~14 사이의 숫자를 입력해야 합니다")
+        return False
+    
+    # 빈 곳에 착수해야함
+    rule_only_empty = lambda x: board[int(x[1])][int(x[0])] == '+'
+    if rule_only_empty(pos): # TODO QA
+        print("해당 위치에는 이미 돌이 존재합니다")
+        return False
+
+    return True
 
 def isBannedLocation():
     # 입력한 착수 지점이 금수에 해당하는지 확인
+        # hori, vert, diag, rDiag
         # 입력 값이 쌍삼임
         # 입력 값이 뜬삼임
         # 입력 값이 뜬뜬삼임
@@ -55,8 +63,9 @@ def isWin():
 
 if __name__ == '__main__':
     os.system('cls')
-    showBoard()
-    choosePlay()
+    while True:
+        showBoard()
+        choosePlay()
 
 
 
