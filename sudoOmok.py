@@ -49,6 +49,10 @@ def isBannedLocation():
         # 입력 값이 뜬뜬삼임
     pass
 
+def isWin():
+    # 오목 완성 여부 확인(6목 제외)
+    pass
+
 if __name__ == '__main__':
     os.system('cls')
     showBoard()
