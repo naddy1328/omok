@@ -9,21 +9,26 @@ turn = 1
 board = [["+" for _ in range(15)] for __ in range(15)]
 
 def showBoard():
+    print("   " + "  ".join([str(i)[-1] for i in range(15)]))
     for i, line in enumerate(board):
-        print("  ".join(line))
+        print(str(i)[-1] + "  " + "  ".join(line))
     print("="*30)
-
-def playStone(x: int, y: int):
-    global turn
-    board[y][x] = BLACK if turn == 1 else WHITE
-    turn *= -1
 
 def choosePlay() -> list:
     while True:
         print("착수지점: ", end='')
         pos = input().split()
         if isValidInput(pos):
-            return list(map(int, pos))
+            pos = list(map(int, pos))
+            if isBannedLocation(pos):
+                continue
+            playStone(pos[0], pos[1])
+            return
+
+def playStone(x: int, y: int):
+    global turn
+    board[y][x] = BLACK if turn == 1 else WHITE
+    turn *= -1
             
 def isValidInput(pos: str) -> bool:    
     # 입력한 착수 지점의 형식이 올바른지 확인
@@ -60,23 +65,59 @@ def isBannedLocation(_pos: list) -> bool:
     DIAG = Pos(1, 1)
     R_DIAG = Pos(1, -1)
 
-    PosInfo = namedtuple('PosInfo', 'x y direction')
-    dots = [PosInfo(pos.x + i * direction.x, pos.y + i * direction.y, direction) for direction in [HORI, VERT, DIAG, R_DIAG] for i in range(-2, 3)]
+    PosInfo = namedtuple('PosInfo', 'x y direction idx')
+    dots = [PosInfo(pos.x + i * direction.x, pos.y + i * direction.y, direction, 3-i) for direction in [HORI, VERT, DIAG, R_DIAG] for i in range(-2, 3)]
     def checker(pos:PosInfo) -> list:
         line = ''
         for i in range(-2, 3):
             if 0 <= pos.y + i * pos.direction.y < 15 and 0 <= pos.x + i * pos.direction.x < 15:
                 obj_in_location = board[pos.y + i * pos.direction.y][pos.x + i * pos.direction.x]
                 line += obj_in_location
+            else:
+                line += 'x'
         return line
 
     result = []
-    ImgInfo = namedtuple('ImgInfo', 'init_pos, img direction')
+    ImgInfo = namedtuple('ImgInfo', 'init_pos img direction idx')
     for dot in dots:
-        print(dot)
-        result += [dot, checker(dot), dot.direction]
+        result += [ImgInfo(Pos(dot.x, dot.y), checker(dot), dot.direction, dot.idx)]
+
+
+
+    for _i, r in enumerate(result):
+        ally_color = BLACK if turn == 1 else WHITE
+        enemy_color = WHITE if turn == 1 else BLACK
+        for i, d in enumerate(r.img):
+            if d == enemy_color:
+                tmp_img = "*" * (i+1) + r.img[i+1:] if i < r.idx else r.img[:i] + "*" * (5-i)
+                result[_i] = ImgInfo(Pos(r.init_pos.x, r.init_pos.y), tmp_img, r.direction, r.idx)
+            # d를 검사해서 반대색 돌이 깔려있으면 다음과 같이 동작한다
+            # ㄴ 1. i가 r.idx보다 작다면 이전까지의 내용을 지운다
+            # ㄴ 2. i가 r.idx보다 크다면 이후의 내용을 모두 지운다
+            # ㄴ 착수위치는 돌이 없으므로 i는 r.idx보다 크거나 작다
+
+    judge = dict()
+    for direction in [HORI, VERT, DIAG, R_DIAG]:
+        judge[direction] = 0
+    for _i, r in enumerate(result):
+        if len(r.img.replace('x', '').replace("*", '')) >= 3:
+            judge[r.direction] = max(judge[r.direction], r.img.count(ally_color))
+
+
+
+
     pprint(result)
-    # TODO 이제 대충 금수인지 아닌지 확인하시오
+    num_of_three = 0
+    for k in judge.keys():
+        if judge[k] == 2:
+            num_of_three += 1
+    print("num_of_three:", num_of_three)
+    print(judge)
+    if num_of_three >= 2:
+        print("쌍삼입니다")
+        return True
+        
+
     
     
         
@@ -86,6 +127,7 @@ def isBannedLocation(_pos: list) -> bool:
         # 입력 값이 뜬삼임
         # 입력 값이 뜬뜬삼임
     pass
+    return False
 
 def isWin():
     # 오목 완성 여부 확인(6목 제외)
@@ -93,7 +135,6 @@ def isWin():
 
 if __name__ == '__main__':
     os.system('cls')
-    isBannedLocation([0, 0])
     while True:
         showBoard()
         choosePlay()
