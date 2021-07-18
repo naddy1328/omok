@@ -53,22 +53,32 @@ def isValidInput(pos: str) -> bool:
 def isBannedLocation(_pos: list) -> bool:
     Pos = namedtuple('Pos', 'x y')
     pos = Pos(_pos[0], _pos[1])
-    HORI = Pos(0, 1)
-    VERT = Pos(1, 0)
+
+    # 방향을 정해줌
+    HORI = Pos(1, 0)
+    VERT = Pos(0, 1)
     DIAG = Pos(1, 1)
     R_DIAG = Pos(1, -1)
 
-    pos_lists = [[[pos.y + i * direction.y, pos.x + i * direction.x, direction] for i in range(-2, 3)] for direction in [HORI, VERT, DIAG, R_DIAG]]
-    pprint(pos_lists)
+    PosInfo = namedtuple('PosInfo', 'x y direction')
+    dots = [PosInfo(pos.x + i * direction.x, pos.y + i * direction.y, direction) for direction in [HORI, VERT, DIAG, R_DIAG] for i in range(-2, 3)]
+    def checker(pos:PosInfo) -> list:
+        line = ''
+        for i in range(-2, 3):
+            if 0 <= pos.y + i * pos.direction.y < 15 and 0 <= pos.x + i * pos.direction.x < 15:
+                obj_in_location = board[pos.y + i * pos.direction.y][pos.x + i * pos.direction.x]
+                line += obj_in_location
+        return line
 
-    def checkHori():
-        pass
-    def checkVert():
-        pass
-    def checkDiag():
-        pass
-    def checkReverseDiag():
-        pass
+    result = []
+    ImgInfo = namedtuple('ImgInfo', 'init_pos, img direction')
+    for dot in dots:
+        print(dot)
+        result += [dot, checker(dot), dot.direction]
+    pprint(result)
+    # TODO 이제 대충 금수인지 아닌지 확인하시오
+    
+    
         
     # 입력한 착수 지점이 금수에 해당하는지 확인
         # hori, vert, diag, rDiag
