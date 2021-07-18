@@ -8,6 +8,8 @@ WHITE = '○'
 turn = 1
 board = [["+" for _ in range(15)] for __ in range(15)]
 
+debug = False
+
 def showBoard():
     print("   " + "  ".join([str(i)[-1] for i in range(15)]))
     for i, line in enumerate(board):
@@ -19,8 +21,20 @@ def choosePlay() -> list:
         print("착수지점: ", end='')
         pos = input().split()
         if isValidInput(pos):
-            pos = list(map(int, pos))
-            if isBannedLocation(pos):
+            pos = list(map(int, pos[0:2]))
+            global debug
+            if debug:
+                playStone(pos[0], pos[1])
+                debug = False
+                return
+            scan_lines = scanLines(pos)
+            if isWin(scan_lines):
+                print(BLACK if turn == 1 else WHITE, "is win.")
+                input()
+                global board
+                board = [["+" for _ in range(15)] for __ in range(15)]
+                return
+            if isBannedLocation(scan_lines):
                 continue
             playStone(pos[0], pos[1])
             return
@@ -30,9 +44,16 @@ def playStone(x: int, y: int):
     board[y][x] = BLACK if turn == 1 else WHITE
     turn *= -1
             
-def isValidInput(pos: str) -> bool:    
+def isValidInput(pos: list) -> bool:    
     # 입력한 착수 지점의 형식이 올바른지 확인
     # TODO DEBUG 예외
+    rule_DEBUG = lambda x: len(x) == 3 and x[2].lower() in ['b', 'w'] 
+    if rule_DEBUG(pos):
+        global debug
+        global turn
+        debug = True
+        turn = 1 if pos[2] == 'b' else -1
+        return True
 
     # 입력값이 2개가 아닌 경우를 확인
     rule_input_two = lambda x: len(x) != 2
@@ -55,7 +76,7 @@ def isValidInput(pos: str) -> bool:
 
     return True
 
-def isBannedLocation(_pos: list) -> bool:
+def scanLines(_pos: list) -> bool:
     Pos = namedtuple('Pos', 'x y')
     pos = Pos(_pos[0], _pos[1])
 
@@ -95,18 +116,25 @@ def isBannedLocation(_pos: list) -> bool:
             # ㄴ 1. i가 r.idx보다 작다면 이전까지의 내용을 지운다
             # ㄴ 2. i가 r.idx보다 크다면 이후의 내용을 모두 지운다
             # ㄴ 착수위치는 돌이 없으므로 i는 r.idx보다 크거나 작다
+    return result
+
+def isBannedLocation(scan_lines: list) -> bool:
+    ally_color = BLACK if turn == 1 else WHITE
+    enemy_color = WHITE if turn == 1 else BLACK
+    Pos = namedtuple('Pos', 'x y')
+    # 방향을 정해줌
+    HORI = Pos(1, 0)
+    VERT = Pos(0, 1)
+    DIAG = Pos(1, 1)
+    R_DIAG = Pos(1, -1)
 
     judge = dict()
     for direction in [HORI, VERT, DIAG, R_DIAG]:
         judge[direction] = 0
-    for _i, r in enumerate(result):
+    for _i, r in enumerate(scan_lines):
         if len(r.img.replace('x', '').replace("*", '')) >= 3:
             judge[r.direction] = max(judge[r.direction], r.img.count(ally_color))
 
-
-
-
-    pprint(result)
     num_of_three = 0
     for k in judge.keys():
         if judge[k] == 2:
@@ -116,22 +144,22 @@ def isBannedLocation(_pos: list) -> bool:
     if num_of_three >= 2:
         print("쌍삼입니다")
         return True
-        
-
-    
-    
-        
-    # 입력한 착수 지점이 금수에 해당하는지 확인
-        # hori, vert, diag, rDiag
-        # 입력 값이 쌍삼임
-        # 입력 값이 뜬삼임
-        # 입력 값이 뜬뜬삼임
-    pass
     return False
 
-def isWin():
-    # 오목 완성 여부 확인(6목 제외)
-    pass
+def isWin(scan_lines: list) -> bool:
+    Pos = namedtuple('Pos', 'x y')
+    # 방향을 정해줌
+    HORI = Pos(1, 0)
+    VERT = Pos(0, 1)
+    DIAG = Pos(1, 1)
+    R_DIAG = Pos(1, -1)
+
+    judge = dict()
+    for direction in [HORI, VERT, DIAG, R_DIAG]:
+        judge[direction] = 0
+    for _i, r in enumerate(scan_lines):
+        if len(r.img.replace('x', '').replace("*", '').replace('+', '')) >= 4:
+            return True
 
 if __name__ == '__main__':
     os.system('cls')
