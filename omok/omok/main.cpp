@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <windows.h>
 
 struct Pos {
 	int x;
@@ -15,7 +16,11 @@ struct CheckUnit {
 char board[15][15];
 int turn = 1;
 CheckUnit check_units[20];
-
+char ally;
+char enemy;
+int in_a_row_counter[4][5];
+int largest_each_direction[4];
+bool over_five_flag;
 
 void initBoard();
 void showBoard();
@@ -23,10 +28,12 @@ void playStone();
 bool isValidInput(Pos pos);
 void makeCheckUnits(Pos pos);
 void showCheckUnits();
+bool isBannedPlay();
+bool isWin();
 
 // const
-Pos VERT = { 0, 1 };
 Pos HORI = { 1, 0 };
+Pos VERT = { 0, 1 };
 Pos DIAG = { 1, 1 };
 Pos R_DIAG = { 1, -1 };
 char BLACK = 'O';
@@ -90,6 +97,20 @@ void playStone() {
 		if (isValidInput(pos)) {
 			makeCheckUnits(pos);
 			showCheckUnits();
+			if (isBannedPlay()) {
+				printf("쌍삼입니다\n");
+				continue;
+			}
+			if (isWin()) {
+				char winner = (turn == 1) ? 'O' : 'X';
+				board[pos.y][pos.x] = (turn == 1) ? 'b' : 'w';
+				showBoard();
+				printf("GAME OVER, %c가 승리했습니다\n", winner);
+				system("PAUSE");
+				initBoard();
+				break;
+			}
+			//착수
 			board[pos.y][pos.x] = (turn == 1) ? 'b':'w';
 			turn *= -1;
 			break;
@@ -135,6 +156,60 @@ void makeCheckUnits(Pos pos) {
 			result_idx++;
 		}
 	}
+
+	char ally = (turn == 1) ? 'b' : 'w';
+	char enemy = (turn == -1) ? 'b' : 'w';
+
+	// 중간에 적 돌이 낄 경우에 대한 처리
+	for (int d = 0; d < 4; d++) { // d is direction		
+		for (int i = 0; i < 5; i++) { // i is index
+			for (int img = 0; img < 5; img++) {
+				if (img == enemy) {
+					if (i < check_units[d * 5 + i].start_idx) {
+						for (int j = 0; j <= i; j++) {
+							check_units[d * 5 + i].img[j] = '*';
+						}
+					}
+					else {
+						for (int j = 4; j >= i; j--) {
+							check_units[d * 5 + i].img[j] = '*';
+						}
+					}
+				}
+			}
+		}
+	}
+	for (int d = 0; d < 4; d++) {
+		for (int i = 0; i < 5; i++) {
+			int count = 0;
+			for (int img = 0; img < 5; img++) {
+				if (check_units[d * 5 + i].img[img] == ally) {
+					count++;
+				}
+			}
+			in_a_row_counter[d][i] = count;
+		}
+	}
+
+	over_five_flag = false;
+	for (int d = 0; d < 4; d++) {
+		int val = 0;
+		for (int i = 0; i < 5; i++) {
+			if (in_a_row_counter[d][i] > val) {
+				val = in_a_row_counter[d][i];
+				if (val == 4) {
+					int x, y;
+					x = check_units[d * 5 + i].init_pos.x - 3 * check_units[d * 5 + i].direction.x;
+					y = check_units[d * 5 + i].init_pos.y - 3 * check_units[d * 5 + i].direction.y;
+					if (0 <= x && x < 15 && 0 <= y && y < 15 && board[y][x] == ally) {over_five_flag = true;}
+					x = check_units[d * 5 + i].init_pos.x + 3 * check_units[d * 5 + i].direction.x;
+					y = check_units[d * 5 + i].init_pos.y + 3 * check_units[d * 5 + i].direction.y;
+					if (0 <= x && x < 15 && 0 <= y && y < 15 && board[y][x] == ally) { over_five_flag = true; }
+				}
+			}
+		}
+		largest_each_direction[d] = val;
+	}
 }
 
 void showCheckUnits() {
@@ -143,3 +218,33 @@ void showCheckUnits() {
 			,check_units[i].init_pos.x, check_units[i].init_pos.y, check_units[i].start_idx, check_units[i].img, check_units[i].direction.x, check_units[i].direction.y);
 	}
 }
+
+bool isBannedPlay() {
+	// 본 함수는 makeCheckUnits() 함수에 의존적입니다
+	int three_counter = 0;
+	for (int i = 0; i < 4; i++) {
+		if (largest_each_direction[i] == 2) {
+			three_counter++;
+		}
+	}
+
+	if (three_counter >= 2) {
+		return true;
+	}
+
+	return false;
+}
+
+bool isWin() {
+	int five_counter = 0;
+	for (int i = 0; i < 4; i++) {
+		if (largest_each_direction[i] == 4) {
+			five_counter++;
+		}
+	}
+	if (!(over_five_flag)&&five_counter != 0) {
+		return true;
+	}
+	return false;
+}
+
