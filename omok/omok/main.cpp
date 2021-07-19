@@ -14,13 +14,15 @@ struct CheckUnit {
 // 전역변수
 char board[15][15];
 int turn = 1;
+CheckUnit check_units[20];
+
 
 void initBoard();
 void showBoard();
 void playStone();
 bool isValidInput(Pos pos);
-void showCheckUnits(CheckUnit* units);
-CheckUnit* makeCheckUnits(Pos pos);
+void makeCheckUnits(Pos pos);
+void showCheckUnits();
 
 // const
 Pos VERT = { 0, 1 };
@@ -86,8 +88,8 @@ void playStone() {
 	
 		Pos pos = { x, y };
 		if (isValidInput(pos)) {
-			CheckUnit* units = makeCheckUnits(pos);
-			showCheckUnits(units);
+			makeCheckUnits(pos);
+			showCheckUnits();
 			board[pos.y][pos.x] = (turn == 1) ? 'b':'w';
 			turn *= -1;
 			break;
@@ -109,37 +111,35 @@ bool isValidInput(Pos pos) {
 	}
 }
 
-CheckUnit* makeCheckUnits(Pos pos) {
-	CheckUnit result[20];
+void makeCheckUnits(Pos pos) {
 	Pos direction[4] = { HORI, VERT, DIAG, R_DIAG };
 
 	int result_idx = 0;
 	for (int d = 0; d < 4; d++) {
 		for (int i = -2; i < 3; i++) {
-			result[result_idx].init_pos = { pos.x + i * direction[d].x , pos.y + i * direction[d].y };
-			result[result_idx].start_idx = 2 - i;
+			check_units[result_idx].init_pos = { pos.x + i * direction[d].x , pos.y + i * direction[d].y };
+			check_units[result_idx].start_idx = 2 - i;
 			for (int img = -2; img < 3; img++) {
 				int x, y;
-				x = result[result_idx].init_pos.x + img * direction[d].x;
-				y = result[result_idx].init_pos.y + img * direction[d].y;
+				x = check_units[result_idx].init_pos.x + img * direction[d].x;
+				y = check_units[result_idx].init_pos.y + img * direction[d].y;
 				if (0 <= x && x < 15 && 0 <= y && y < 15) {
-					result[result_idx].img[img + 2] = board[y][x];
+					check_units[result_idx].img[img + 2] = board[y][x];
 				}
 				else {
-					result[result_idx].img[img + 2] = 'x'; // 배열 범위 벗어남
+					check_units[result_idx].img[img + 2] = 'x'; // 배열 범위 벗어남
 				}
 			}
-			result[result_idx].img[5] = '\0';
-			result[result_idx].direction = direction[d];
+			check_units[result_idx].img[5] = '\0';
+			check_units[result_idx].direction = direction[d];
 			result_idx++;
 		}
 	}
-
-	return result;
 }
 
-void showCheckUnits(CheckUnit *units) {
+void showCheckUnits() {
 	for (int i = 0; i < 20; i++) {
-		printf(".init_pos:[%d, %d], start_idx: %d, img: %s, directions:[%d %d]\n", units[i].init_pos.x, units[i].init_pos.y, units[i].start_idx, units[i].img, units[i].direction.x, units[i].direction.y);
+		printf(".init_pos:[%d, %d], start_idx: %d, img: %s, directions:[%d %d]\n"
+			,check_units[i].init_pos.x, check_units[i].init_pos.y, check_units[i].start_idx, check_units[i].img, check_units[i].direction.x, check_units[i].direction.y);
 	}
 }
