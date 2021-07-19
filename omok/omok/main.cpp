@@ -97,10 +97,6 @@ void playStone() {
 		if (isValidInput(pos)) {
 			makeCheckUnits(pos);
 			showCheckUnits();
-			if (isBannedPlay()) {
-				printf("½Ö»ïÀÔ´Ï´Ù\n");
-				continue;
-			}
 			if (isWin()) {
 				char winner = (turn == 1) ? 'O' : 'X';
 				board[pos.y][pos.x] = (turn == 1) ? 'b' : 'w';
@@ -109,6 +105,11 @@ void playStone() {
 				system("PAUSE");
 				initBoard();
 				break;
+			}
+
+			if (isBannedPlay()) {
+				printf("½Ö»ïÀÔ´Ï´Ù\n");
+				continue;
 			}
 			//Âø¼ö
 			board[pos.y][pos.x] = (turn == 1) ? 'b':'w';
